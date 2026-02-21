@@ -1,18 +1,6 @@
-import {
-  integer,
-  jsonb,
-  pgEnum,
-  pgTable,
-  serial,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { integer, jsonb, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
-export const matchStatus = pgEnum("match_status", [
-  "scheduled",
-  "live",
-  "finished",
-]);
+export const matchStatus = pgEnum("match_status", ["scheduled", "live", "finished"]);
 
 export const matches = pgTable("matches", {
   id: serial("id").primaryKey(),
@@ -49,4 +37,3 @@ export type SelectMatch = typeof matches.$inferSelect;
 
 export type InsertCommentary = typeof commentary.$inferInsert;
 export type SelectCommentary = typeof commentary.$inferSelect;
-

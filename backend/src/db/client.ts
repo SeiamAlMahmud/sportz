@@ -9,8 +9,7 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL is required in your environment");
 }
 
-const isLocalDatabase =
-  databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1");
+const isLocalDatabase = databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1");
 
 export const pool = new Pool({
   connectionString: databaseUrl,

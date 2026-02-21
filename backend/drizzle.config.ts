@@ -6,8 +6,7 @@ export default defineConfig({
   schema: "./src/db/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: pro
-    cess.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/postgres",
+    url: process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/postgres",
   },
   verbose: true,
   strict: true,

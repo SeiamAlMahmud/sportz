@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import * as schema from "./schema.js";
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -9,6 +9,12 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL is required in your environment");
 }
 
-const sql = neon(databaseUrl);
+const isLocalDatabase =
+  databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1");
 
-export const db = drizzle(sql, { schema });
+export const pool = new Pool({
+  connectionString: databaseUrl,
+  ssl: isLocalDatabase ? undefined : { rejectUnauthorized: false },
+});
+
+export const db = drizzle(pool, { schema });

@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { db } from "../db/client.js";
+import { db, pool } from "../db/client.js";
 import { users } from "../db/schema.js";
 
 async function runCrudDemo() {
@@ -36,4 +36,6 @@ async function runCrudDemo() {
 runCrudDemo().catch((error) => {
   console.error("CRUD demo failed:", error);
   process.exitCode = 1;
+}).finally(async () => {
+  await pool.end();
 });

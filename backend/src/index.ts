@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+import { verifyDatabaseConnection } from "./db/client.js";
 
 const app = express();
 const port = Number(process.env.PORT ?? 8000);
@@ -12,6 +13,16 @@ app.get("/", (_req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+async function startServer() {
+  try {
+    await verifyDatabaseConnection();
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  } catch (error) {
+    console.error("Server startup aborted due to database error.");
+    process.exit(1);
+  }
+}
+
+void startServer();

@@ -4,6 +4,10 @@ export const listCommentaryQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).optional(),
 });
 
+export const matchIdParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
 export const createCommentarySchema = z.object({
   minutes: z.number().int().nonnegative(),
   sequence: z.number().int().optional(),
@@ -12,6 +16,6 @@ export const createCommentarySchema = z.object({
   actor: z.string().optional(),
   team: z.string().optional(),
   message: z.string().min(1),
-  metadata: z.record(z.string(), z.any()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   tags: z.array(z.string()).optional(),
 });

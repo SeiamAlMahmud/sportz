@@ -1,5 +1,6 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { wsArcjet } from "../arcjet.js";
+import type { IncomingMessage } from "http";
 
 const sendJson = (socket: WebSocket, payload: unknown) => {
   if (socket.readyState !== WebSocket.OPEN) return;
@@ -23,7 +24,7 @@ export const attachWebSocketServer = (server: ReturnType<typeof import("http").c
 
   type AliveSocket = WebSocket & { isAlive?: boolean };
 
-  wss.on("connection", async (socket: AliveSocket, req: any) => {
+  wss.on("connection", async (socket: AliveSocket, req: IncomingMessage) => {
 
 
     if (wsArcjet) {

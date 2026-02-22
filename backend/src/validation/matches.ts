@@ -1,9 +1,9 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const MATCH_STATUS = {
-  SCHEDULED: 'scheduled',
-  LIVE: 'live',
-  FINISHED: 'finished',
+  SCHEDULED: "scheduled",
+  LIVE: "live",
+  FINISHED: "finished",
 } as const;
 
 export const listMatchesQuerySchema = z.object({
@@ -13,8 +13,6 @@ export const listMatchesQuerySchema = z.object({
 export const matchIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
-
-
 
 export const createMatchSchema = z
   .object({
@@ -33,8 +31,8 @@ export const createMatchSchema = z
     if (end <= start) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'endTime must be chronologically after startTime',
-        path: ['endTime'],
+        message: "endTime must be chronologically after startTime",
+        path: ["endTime"],
       });
     }
   });

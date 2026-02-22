@@ -1,4 +1,4 @@
-import { MATCH_STATUS } from '../validation/matches.js';
+import { MATCH_STATUS } from "../validation/matches.js";
 
 type MatchStatus = (typeof MATCH_STATUS)[keyof typeof MATCH_STATUS];
 

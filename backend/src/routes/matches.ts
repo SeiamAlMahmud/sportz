@@ -91,9 +91,9 @@ matchesRouter.post("/", async (req, res) => {
       })
       .returning();
 
-      if (res.app.locals.brodCastMatchCreated) {
-        res.app.locals.brodCastMatchCreated(event);
-      }
+    if (res.app.locals.brodCastMatchCreated) {
+      res.app.locals.brodCastMatchCreated(event);
+    }
     return res.status(201).json(event);
   } catch (error) {
     console.error("Error creating match:", error);

@@ -24,10 +24,10 @@ async function startServer() {
     await verifyDatabaseConnection();
     const { brodCastMatchCreated } = attachWebSocketServer(server);
     app.locals.brodCastMatchCreated = brodCastMatchCreated;
-    server.listen(PORT,HOST, () => {
-      const baseUrl = HOST === '0.0.0.0' ? `http://localhost:${PORT}` : `http://${HOST}:${PORT}`;
+    server.listen(PORT, HOST, () => {
+      const baseUrl = HOST === "0.0.0.0" ? `http://localhost:${PORT}` : `http://${HOST}:${PORT}`;
       console.log(`Server is running on port ${baseUrl}`);
-      console.log(`websocket server is running on  ${baseUrl.replace('http', 'ws')}/ws`);
+      console.log(`websocket server is running on  ${baseUrl.replace("http", "ws")}/ws`);
     });
   } catch (error) {
     console.error("Server startup aborted due to database error.");

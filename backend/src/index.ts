@@ -2,13 +2,14 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { verifyDatabaseConnection } from "./db/client.js";
+import { matchesRouter } from "./routes/matches.js";
 
 const app = express();
 const port = Number(process.env.PORT ?? 8000);
 
 app.use(cors());
 app.use(express.json());
-
+app.use('/api/matches', matchesRouter);
 app.get("/", (_req, res) => {
   res.send("Hello World!");
 });

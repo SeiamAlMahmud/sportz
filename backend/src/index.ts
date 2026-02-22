@@ -1,11 +1,15 @@
 import express from "express";
 import cors from "cors";
+import http from "http";
 import "dotenv/config";
 import { verifyDatabaseConnection } from "./db/client.js";
 import { matchesRouter } from "./routes/matches.js";
+import { attachWebSocketServer } from "./ws/server.js";
 
+const PORT = Number(process.env.PORT ?? 8000);
+const HOST = process.env.HOST ?? "0.0.0.0";
 const app = express();
-const port = Number(process.env.PORT ?? 8000);
+const server = http.createServer(app);
 
 app.use(cors());
 app.use(express.json());
@@ -18,8 +22,12 @@ app.get("/", (_req, res) => {
 async function startServer() {
   try {
     await verifyDatabaseConnection();
-    app.listen(port, () => {
-      console.log(`Server is running on port ${port}`);
+    const { brodCastMatchCreated } = attachWebSocketServer(server);
+    app.locals.brodCastMatchCreated = brodCastMatchCreated;
+    server.listen(PORT,HOST, () => {
+      const baseUrl = HOST === '0.0.0.0' ? `http://localhost:${PORT}` : `http://${HOST}:${PORT}`;
+      console.log(`Server is running on port ${baseUrl}`);
+      console.log(`websocket server is running on  ${baseUrl.replace('http', 'ws')}/ws`);
     });
   } catch (error) {
     console.error("Server startup aborted due to database error.");

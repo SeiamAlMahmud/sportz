@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type Match = {
@@ -37,6 +38,8 @@ const WS_URL =
   API_BASE_URL.replace(/^http/i, "ws").replace(/\/$/, "") + "/ws";
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
   const [commentary, setCommentary] = useState<Commentary[]>([]);
@@ -70,8 +73,16 @@ export default function Home() {
         if (!res.ok) throw new Error("Failed to load matches.");
         const payload = (await res.json()) as { data: Match[] };
         const items = payload.data ?? [];
+        const queryMatchIdRaw = searchParams.get("matchId");
+        const queryMatchId = queryMatchIdRaw ? Number(queryMatchIdRaw) : NaN;
+        const hasQueryMatch =
+          Number.isInteger(queryMatchId) && items.some((item) => item.id === queryMatchId);
+
         setMatches(items);
-        setSelectedMatchId((prev) => prev ?? items[0]?.id ?? null);
+        setSelectedMatchId((prev) => {
+          if (hasQueryMatch) return queryMatchId;
+          return prev ?? items[0]?.id ?? null;
+        });
       } catch (error) {
         setErrorText(error instanceof Error ? error.message : "Failed to load data.");
       } finally {
@@ -80,7 +91,17 @@ export default function Home() {
     };
 
     void loadMatches();
-  }, []);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!selectedMatchId) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (params.get("matchId") === String(selectedMatchId)) return;
+
+    params.set("matchId", String(selectedMatchId));
+    router.replace(`/?${params.toString()}`, { scroll: false });
+  }, [router, searchParams, selectedMatchId]);
 
   useEffect(() => {
     if (!selectedMatchId) {

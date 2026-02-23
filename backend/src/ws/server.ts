@@ -2,12 +2,48 @@ import { WebSocket, WebSocketServer } from "ws";
 import { wsArcjet } from "../arcjet.js";
 import type { IncomingMessage } from "http";
 
+const matchSubscribers = new Map<string, Set<WebSocket>>();
+
+const subscribe = (socket: WebSocket, matchId: string) => {
+  if (!matchSubscribers.has(matchId)) {
+    matchSubscribers.set(matchId, new Set());
+  }
+  matchSubscribers.get(matchId)?.add(socket);
+}
+const unsubscribe = (socket: WebSocket, matchId: string) => {
+ 
+  const subscribers = matchSubscribers.get(matchId);
+  if (!subscribers) return;
+  if (subscribers) {
+    subscribers.delete(socket);
+    if (subscribers.size === 0) {
+      matchSubscribers.delete(matchId);
+    }
+  }
+}
+
+const cleanupSubscriptions = (socket: WebSocket) => {
+  for(const matchId of socket.subscriptions) {
+    unsubscribe(socket, matchId);
+  }
+}
+
+const brodCastToMatch = (matchId: string, payload: unknown) => {
+  const subscribers = matchSubscribers.get(matchId);
+  if (!subscribers || subscribers.size === 0) return;
+  const message = JSON.stringify(payload);
+  for (const client of subscribers) {
+    if (client.readyState === WebSocket.OPEN) {
+      sendJson(client, message);
+    }
+  }
+}
 const sendJson = (socket: WebSocket, payload: unknown) => {
   if (socket.readyState !== WebSocket.OPEN) return;
   socket.send(JSON.stringify(payload));
 };
 
-const brodCast = (wss: WebSocketServer, payload: unknown) => {
+const brodCastToAll = (wss: WebSocketServer, payload: unknown) => {
   for (const client of wss.clients) {
     if (client.readyState !== WebSocket.OPEN) continue;
 
@@ -86,7 +122,7 @@ export const attachWebSocketServer = (server: ReturnType<typeof import("http").c
   });
 
   const brodCastMatchCreated = (match: unknown) => {
-    brodCast(wss, { event: "matchCreated", data: match });
+    brodCastToAll(wss, { event: "matchCreated", data: match });
   };
 
   return { brodCastMatchCreated };

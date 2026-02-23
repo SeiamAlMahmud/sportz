@@ -2,11 +2,11 @@ import { WebSocket, WebSocketServer } from "ws";
 import { wsArcjet } from "../arcjet.js";
 import type { IncomingMessage } from "http";
 
-type AliveSocket = WebSocket & { isAlive?: boolean; subscriptions: Set<string> };
+type AliveSocket = WebSocket & { isAlive?: boolean; subscriptions: Set<number> };
 
-const matchSubscribers = new Map<string, Set<AliveSocket>>();
+const matchSubscribers = new Map<number, Set<AliveSocket>>();
 
-const subscribe = (socket: AliveSocket, matchId: string) => {
+const subscribe = (socket: AliveSocket, matchId: number) => {
   if (!matchSubscribers.has(matchId)) {
     matchSubscribers.set(matchId, new Set());
   }
@@ -14,7 +14,7 @@ const subscribe = (socket: AliveSocket, matchId: string) => {
   socket.subscriptions.add(matchId);
 };
 
-const unsubscribe = (socket: AliveSocket, matchId: string) => {
+const unsubscribe = (socket: AliveSocket, matchId: number) => {
   const subscribers = matchSubscribers.get(matchId);
   if (!subscribers) return;
 
@@ -31,13 +31,12 @@ const cleanupSubscriptions = (socket: AliveSocket) => {
   }
 };
 
-const brodCastToMatch = (matchId: string, payload: unknown) => {
+const brodCastToMatch = (matchId: number, payload: unknown) => {
   const subscribers = matchSubscribers.get(matchId);
   if (!subscribers || subscribers.size === 0) return;
-  const message = JSON.stringify(payload);
   for (const client of subscribers) {
     if (client.readyState === WebSocket.OPEN) {
-      sendJson(client, message);
+      sendJson(client, payload);
     }
   }
 }
@@ -49,18 +48,17 @@ const handleMessage = (socket: AliveSocket, data: any) => {
     message = JSON.parse(data.toString());
   } catch (error) {
     console.error("Failed to parse message:", error);
-    sendJson(socket, {})
+    sendJson(socket, { error: "Invalid message payload." });
+    return;
   }
   if (message?.type === "subscribe" && Number.isInteger(message.matchId)) {
     subscribe(socket, message.matchId);
-    socket.subscriptions.add(message.matchId);
-    sendJson(socket, { type: 'subscribed', matchId: message.matchId });
+    sendJson(socket, { type: "subscribed", matchId: message.matchId });
     return;
   }
   if (message?.type === "unsubscribe" && Number.isInteger(message.matchId)) {
     unsubscribe(socket, message.matchId);
-    socket.subscriptions.delete(message.matchId);
-    sendJson(socket, { type: 'unsubscribed', matchId: message.matchId });
+    sendJson(socket, { type: "unsubscribed", matchId: message.matchId });
     return;
   }
 }
@@ -88,7 +86,7 @@ export const attachWebSocketServer = (server: ReturnType<typeof import("http").c
   });
 
   wss.on("connection", async (socket: AliveSocket, req: IncomingMessage) => {
-    socket.subscriptions = new Set<string>();
+    socket.subscriptions = new Set<number>();
 
 
     if (wsArcjet) {
@@ -120,7 +118,7 @@ export const attachWebSocketServer = (server: ReturnType<typeof import("http").c
       console.log("[ws] pong received, isAlive=true");
     });
 
-    socket.subscriptions = new Set<string>();
+    socket.subscriptions = new Set<number>();
     
     console.log("New client connected");
     sendJson(socket, { message: "Welcome to the WebSocket server!" });
@@ -162,7 +160,7 @@ export const attachWebSocketServer = (server: ReturnType<typeof import("http").c
     brodCastToAll(wss, { event: "matchCreated", data: match });
   };
 
-  const broadCastCommantary = (matchId: string, commentary: unknown) => {
+  const broadCastCommantary = (matchId: number, commentary: unknown) => {
     brodCastToMatch(matchId, { event: "commentary", data: commentary });
   }
 

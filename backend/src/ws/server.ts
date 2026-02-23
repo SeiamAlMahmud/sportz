@@ -43,7 +43,7 @@ const brodCastToMatch = (matchId: string, payload: unknown) => {
 }
 
 
-const handleMessage = (socket, data) => {
+const handleMessage = (socket: AliveSocket, data: any) => {
   let message;
   try {
     message = JSON.parse(data.toString());
@@ -64,11 +64,6 @@ const handleMessage = (socket, data) => {
     return;
   }
 }
-
-
-
-
-
 
 
 
@@ -125,10 +120,18 @@ export const attachWebSocketServer = (server: ReturnType<typeof import("http").c
       console.log("[ws] pong received, isAlive=true");
     });
 
+    socket.subscriptions = new Set<string>();
+    
     console.log("New client connected");
     sendJson(socket, { message: "Welcome to the WebSocket server!" });
+    
+    socket.on("message", (data) => handleMessage(socket, data));
 
-    socket.on("error", console.error);
+
+    socket.on("error", ()=> {
+      console.error("WebSocket error occurred");
+      socket.terminate();
+    });
     socket.on("close", () => {
       cleanupSubscriptions(socket);
       console.log("Client disconnected");
@@ -159,5 +162,9 @@ export const attachWebSocketServer = (server: ReturnType<typeof import("http").c
     brodCastToAll(wss, { event: "matchCreated", data: match });
   };
 
-  return { brodCastMatchCreated };
+  const broadCastCommantary = (matchId: string, commentary: unknown) => {
+    brodCastToMatch(matchId, { event: "commentary", data: commentary });
+  }
+
+  return { brodCastMatchCreated, broadCastCommantary };
 };

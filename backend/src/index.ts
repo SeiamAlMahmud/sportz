@@ -26,8 +26,9 @@ app.get("/", (_req, res) => {
 async function startServer() {
   try {
     await verifyDatabaseConnection();
-    const { brodCastMatchCreated } = attachWebSocketServer(server);
+    const { brodCastMatchCreated, broadCastCommantary } = attachWebSocketServer(server);
     app.locals.brodCastMatchCreated = brodCastMatchCreated;
+    app.locals.broadCastCommantary = broadCastCommantary;
     server.listen(PORT, HOST, () => {
       const baseUrl = HOST === "0.0.0.0" ? `http://localhost:${PORT}` : `http://${HOST}:${PORT}`;
       console.log(`Server is running on port ${baseUrl}`);
